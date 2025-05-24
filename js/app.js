@@ -17,9 +17,10 @@ function fetchData(){
         (jsondata) => {
             console.log("check what is in the jsonData",jsondata);
             AllCharacters=jsondata;
-            LoadMore(jsondata);
-            loadMoreBtn.addEventListener("click",()=>LoadMore(jsondata));
             filtering(jsondata);
+            visibleCharacters = jsondata;
+            LoadMore();
+            loadMoreBtn.addEventListener("click",LoadMore);
         }
     )
     .catch((error) => {
@@ -27,10 +28,6 @@ function fetchData(){
         CardContainer.innerHTML= "<p>There is error here</p>";
     })
 }
-
-
-
-
 
 function RenderData(jsondata){
     jsondata.forEach((element) => {
@@ -54,40 +51,50 @@ function RenderData(jsondata){
         imgElement.src="images/not-found.png";
     }
 
-    element.cardFrame = cardFrame;
+    element.cardFrame=cardFrame;
 
     CardContainer.appendChild(cardFrame);
     });
 }
 
 fetchData();
+let visibleCharacters=[];
 
 function filtering(jsondata){
     const lis = document.getElementsByTagName("li");
     Array.from(lis).forEach(li => {
         li.addEventListener("click", function(){
+            visibleCharacters = [];
+
             jsondata.forEach(element => {
-                element.cardFrame.style.display = "none"; 
-                if(element.house === li.id){
-                    element.cardFrame.style.display = "block"; 
-                }
-                if(li.id==="all"){
-                    element.cardFrame.style.display = "block";
+                if (li.id === "all" || element.house === li.id) {
+                    visibleCharacters.push(element);
                 }
             });
+
+            CardContainer.innerHTML = "";  
+            currentIndex = 0;
+
+            if (visibleCharacters.length > 16) {
+                loadMoreBtn.style.display = "block";
+            } else {
+                loadMoreBtn.style.display = "none";
+            }
+
+            LoadMore();
         });
     });
 }
 
+
 let currentIndex = 0;
-function LoadMore(AllCharacters){
-    const chunk=AllCharacters.slice(currentIndex,currentIndex+16);
-    RenderData(chunk);
-    // console.log("currentIndex:", currentIndex);
-    // console.log("AllCharacters.length:", AllCharacters.length);
-    currentIndex+=16;
-    if(currentIndex>=AllCharacters.length){
-        loadMoreBtn.style.display="none";
+function LoadMore(){
+    const nextItems = visibleCharacters.slice(currentIndex, currentIndex + 16);
+    RenderData(nextItems);
+    currentIndex += 16;
+
+    if (currentIndex >= visibleCharacters.length) {
+        loadMoreBtn.style.display = "none";
     }
 }
 
